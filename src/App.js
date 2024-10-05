@@ -132,6 +132,80 @@ const encontrarPassos = (estadoInicial, estadoFinal) => {
 };
 
 
+//Hill climbing com reinicio
+const hillClimbing = (estadoInicial, estadoFinal, maxReinicios = 10) => {
+  let estadoAtual = estadoInicial;
+  let passos = [];
+  let tentativas = 0;
+  let melhorEstado = estadoAtual; // Inicializa a variável para armazenar o melhor estado encontrado
+  let melhorHeuristica = calcularHeuristica(estadoAtual, estadoFinal); // Inicializa a heurística do melhor estado
+
+  while (tentativas < maxReinicios) {
+    passos = [estadoAtual]; // Reinicia o caminho a partir do estado atual
+
+    while (true) {
+      const vizinhos = gerarVizinhos(estadoAtual);
+      const melhorVizinho = vizinhos.reduce((melhor, vizinho) => {
+        const custoAtual = calcularHeuristica(melhor, estadoFinal);
+        const custoVizinho = calcularHeuristica(vizinho, estadoFinal);
+        return custoVizinho < custoAtual ? vizinho : melhor;
+      }, estadoAtual);
+
+      if (calcularHeuristica(melhorVizinho, estadoFinal) >= calcularHeuristica(estadoAtual, estadoFinal)) {
+        break; // Se não houver melhoria, terminamos
+      }
+      
+      estadoAtual = melhorVizinho; // Move para o melhor vizinho
+      passos.push(estadoAtual); // Adiciona o novo estado ao caminho
+
+      // Atualiza o melhor estado se a heurística for menor
+      const heuristicaAtual = calcularHeuristica(estadoAtual, estadoFinal);
+      if (heuristicaAtual < melhorHeuristica) {
+        melhorEstado = estadoAtual; // Atualiza o melhor estado
+        melhorHeuristica = heuristicaAtual; // Atualiza a heurística do melhor estado
+      }
+    }
+
+    // Verifica se encontramos a solução
+    if (JSON.stringify(estadoAtual) === JSON.stringify(estadoFinal)) {
+      return passos; // Retorna o caminho se a solução for encontrada
+    }
+
+    // Se não encontramos, gera um novo estado inicial e aumenta a contagem de tentativas
+    estadoAtual = embaralharArray(blocosIniciais);
+    while (!ehSolucionavel(estadoAtual)) {
+      estadoAtual = embaralharArray(blocosIniciais);
+    }
+    tentativas++;
+  }
+
+  return [melhorEstado]; // Retorna o melhor estado encontrado após todas as tentativas
+};
+
+
+const gerarVizinhos = (estado) => {
+  const vizinhos = [];
+  const indiceVazio = estado.indexOf(null);
+
+  for (const { dx, dy } of matrizMovimentos) {
+    const novaPosicao = indiceVazio + dx * 3 + dy;
+
+    if (novaPosicao >= 0 && novaPosicao < 9) {
+      const podeMover =
+        (Math.abs(indiceVazio - novaPosicao) === 1 && Math.floor(indiceVazio / 3) === Math.floor(novaPosicao / 3)) || 
+        (Math.abs(indiceVazio - novaPosicao) === 3);
+
+      if (podeMover) {
+        const novoEstado = trocaBlocos(estado, indiceVazio, novaPosicao);
+        vizinhos.push(novoEstado);
+      }
+    }
+  }
+
+  return vizinhos;
+};
+
+
 const aStar = (estadoInicial, estadoFinal) => {
   // Inicializa a fila com o estado inicial, índice do espaço vazio, caminho percorrido até aqui e custo total (g)
   const fila = [[estadoInicial, estadoInicial.indexOf(null), [], 0]];
@@ -269,6 +343,20 @@ const App = () => {
     setResolvendo(true);
   };
 
+  const resolverPuzzleHillClimbing = () => {
+    const inicio = performance.now();
+    const novosPassos = hillClimbing(blocosIniciaisEstado, blocosFinaisEstado);
+    const fim = performance.now();
+
+    const tempo = fim - inicio;
+    setTempoGasto(tempo);
+
+    setCaminho(novosPassos);
+    setPassos(novosPassos);
+    setPassoAtual(0);
+    setResolvendo(true);
+  };
+
   const avancarPasso = () => {
     if (passoAtual < passos.length) {
       setBlocosIniciaisEstado(passos[passoAtual]);
@@ -315,9 +403,12 @@ const App = () => {
         </div>
       </div>
 
-      <button onClick={resolverPuzzle} disabled={estaResolvido()}>Resolver com outro</button>
+      {/*<button onClick={resolverPuzzle} disabled={estaResolvido()}>Resolver com outro</button>*/}
+      <button onClick={resolverPuzzleHillClimbing} disabled={estaResolvido()}>Resolver com Hill Climbing</button>
       <button onClick={resolverPuzzleAStar} disabled={estaResolvido()}>Resolver com A*</button>
       <button onClick={calcularSomaDistanciasManhattan}>Calcular Distância Manhattan</button>
+      
+
 
       <button onClick={avancarPasso} disabled={!resolvendo || passoAtual >= passos.length}>Próximo Passo</button>
 
