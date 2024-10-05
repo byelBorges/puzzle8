@@ -14,16 +14,16 @@ const embaralharArray = (array) => {
 };
 
 const ehSolucionavel = (blocos) => {
-  let contagemInversões = 0;
+  let contagemInversoes = 0;
   const arr = blocos.filter(bloco => bloco !== null);
   for (let i = 0; i < arr.length - 1; i++) {
     for (let j = i + 1; j < arr.length; j++) {
       if (arr[i] > arr[j]) {
-        contagemInversões++;
+        contagemInversoes++;
       }
     }
   }
-  return contagemInversões % 2 === 0;
+  return contagemInversoes % 2 === 0;
 };
 
 const Puzzle8 = ({ blocos, setBlocos, podeAlterar }) => {
@@ -57,6 +57,9 @@ const Puzzle8 = ({ blocos, setBlocos, podeAlterar }) => {
   );
 };
 
+
+
+
 const App = () => {
   const [blocosIniciaisEstado, setBlocosIniciaisEstado] = useState(() => {
     let embaralhado = embaralharArray(blocosIniciais);
@@ -71,6 +74,9 @@ const App = () => {
   const estaResolvido = () => {
     return JSON.stringify(blocosIniciaisEstado) === JSON.stringify(blocosFinais);
   };
+
+
+
 
   return (
     <div className="App">
