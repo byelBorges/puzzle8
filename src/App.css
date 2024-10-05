@@ -1,3 +1,7 @@
+body{
+  background-color: rgb(73, 73, 73);
+}
+
 .App {
   display: grid;
   place-items: center;
@@ -54,7 +58,7 @@ button {
   cursor: pointer; /* Muda o cursor para indicar que é clicável */
   border-radius: 5px; /* Cantos arredondados */
   transition: background-color 0.3s; /* Transição suave ao passar o mouse */
-  margin: 0;
+  margin: 3px;
 }
 
 button:hover {
@@ -65,5 +69,19 @@ button:disabled {
   background-color: lightgray; /* Cor de fundo para o botão desabilitado */
   color: darkgray; /* Cor do texto para o botão desabilitado */
   cursor: not-allowed; /* Muda o cursor para indicar que não é clicável */
-  opacity: 0.6; /* Torna o botão parcialmente transparente */
+  opacity: 0.9; /* Torna o botão parcialmente transparente */
+}
+
+.caminho-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.puzzle-state {
+  margin: 10px; /* Espaçamento entre os estados */
+}
+
+.caminho{
+  text-align: center;
 }
