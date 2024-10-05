@@ -26,6 +26,10 @@ const ehSolucionavel = (blocos) => {
   return contagemInversoes % 2 === 0;
 };
 
+
+
+
+
 const Puzzle8 = ({ blocos, setBlocos, podeAlterar }) => {
   const lidarComCliqueBloco = (indice) => {
     const indiceVazio = blocos.indexOf(null);
@@ -80,13 +84,13 @@ const App = () => {
 
   return (
     <div className="App">
-      
+
       <h1>Puzzle 8 - Estado Inicial</h1>
       <Puzzle8 blocos={blocosIniciaisEstado} setBlocos={setBlocosIniciaisEstado} podeAlterar={true} />
-      
+
       <h1>Puzzle 8 - Estado Final</h1>
       <Puzzle8 blocos={blocosFinais} setBlocos={setBlocosFinais} podeAlterar={true} />
-      
+
       {estaResolvido() && <div className="mensagem">Você atingiu o estado final!</div>}
     </div>
   );
