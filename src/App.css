@@ -10,6 +10,17 @@
   grid-gap: 5px;
 }
 
+.puzzles-container {
+  display: flex; /* Utiliza Flexbox para alinhar os puzzles lado a lado */
+  gap: 100px; /* Espaçamento entre os puzzles */
+  margin-bottom: 20px; /* Espaçamento abaixo dos puzzles */
+}
+
+.puzzles-container div{
+  text-align: center;
+
+}
+
 .tile {
   width: 100px;
   height: 100px;
@@ -31,4 +42,28 @@
   margin-top: 20px;
   font-size: 20px;
   color: green;
+}
+
+
+button {
+  background-color: blue; /* Cor de fundo azul */
+  color: white; /* Cor do texto branca */
+  border: none; /* Remove a borda padrão */
+  padding: 10px 20px; /* Espaçamento interno */
+  font-size: 16px; /* Tamanho da fonte */
+  cursor: pointer; /* Muda o cursor para indicar que é clicável */
+  border-radius: 5px; /* Cantos arredondados */
+  transition: background-color 0.3s; /* Transição suave ao passar o mouse */
+  margin: 0;
+}
+
+button:hover {
+  background-color: darkblue; /* Cor de fundo ao passar o mouse */
+}
+
+button:disabled {
+  background-color: lightgray; /* Cor de fundo para o botão desabilitado */
+  color: darkgray; /* Cor do texto para o botão desabilitado */
+  cursor: not-allowed; /* Muda o cursor para indicar que não é clicável */
+  opacity: 0.6; /* Torna o botão parcialmente transparente */
 }
