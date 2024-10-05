@@ -233,23 +233,37 @@ const App = () => {
   const [passos, setPassos] = useState([]);
   const [passoAtual, setPassoAtual] = useState(0);
   const [resolvendo, setResolvendo] = useState(false);
-  const [distanciaManhattan, setDistanciaManhattan] = useState(0); // Estado para armazenar a distância
+  const [distanciaManhattan, setDistanciaManhattan] = useState(-1); // Estado para armazenar a distância
   const [caminho, setCaminho] = useState([]);
+  const [tempoGasto, setTempoGasto] = useState(0);
 
   const estaResolvido = () => {
     return JSON.stringify(blocosIniciaisEstado) === JSON.stringify(blocosFinaisEstado);
   };
 
   const resolverPuzzle = () => {
+    const inicio = performance.now();
     const novosPassos = encontrarPassos(blocosIniciaisEstado, blocosFinaisEstado);
+    const fim = performance.now();
+
+    const tempo = fim - inicio;
+    setTempoGasto(tempo);
+
+    setCaminho(novosPassos);
     setPassos(novosPassos);
     setPassoAtual(0);
     setResolvendo(true);
   };
 
   const resolverPuzzleAStar = () => {
+    const inicio = performance.now();
     const novosPassos = aStar(blocosIniciaisEstado, blocosFinaisEstado);
-    setCaminho(novosPassos); // Armazena o caminho retornado
+    const fim = performance.now();
+    
+    const tempo = fim - inicio;
+    setTempoGasto(tempo);
+
+    setCaminho(novosPassos);
     setPassos(novosPassos);
     setPassoAtual(0);
     setResolvendo(true);
@@ -301,20 +315,25 @@ const App = () => {
         </div>
       </div>
 
-      <button onClick={resolverPuzzle} disabled={estaResolvido() || resolvendo}>Resolver com outro</button>
-      <button onClick={resolverPuzzleAStar} disabled={estaResolvido() || resolvendo}>Resolver com A*</button>
+      <button onClick={resolverPuzzle} disabled={estaResolvido()}>Resolver com outro</button>
+      <button onClick={resolverPuzzleAStar} disabled={estaResolvido()}>Resolver com A*</button>
       <button onClick={calcularSomaDistanciasManhattan}>Calcular Distância Manhattan</button>
 
       <button onClick={avancarPasso} disabled={!resolvendo || passoAtual >= passos.length}>Próximo Passo</button>
 
       {distanciaManhattan >= 0 && <div className="mensagem">Distância de Manhattan: {distanciaManhattan}</div>}
 
+      {tempoGasto >= 0 && (
+        <div className="mensagem">
+          Tempo gasto na resolução: {tempoGasto.toFixed(2)} ms
+        </div>
+      )}
+
       {estaResolvido() && <div className="mensagem">Você atingiu o estado final!</div>}
 
-       {/* Exibe o caminho usado para resolver o puzzle como componentes Puzzle8 */}
-       {caminho.length > 0 && (
+      {caminho.length > 0 && (
         <div className="caminho">
-          <h2>Caminho para solução:</h2>
+          <h2>Caminho para solução:  {caminho.length} Movimentos</h2>
           <Caminho estados={caminho} />
         </div>
       )}

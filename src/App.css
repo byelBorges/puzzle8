@@ -79,9 +79,16 @@ button:disabled {
 }
 
 .puzzle-state {
-  margin: 10px; /* Espaçamento entre os estados */
+  margin: 30px; /* Espaçamento entre os estados */
 }
 
-.caminho{
+.caminho {
   text-align: center;
+  max-width: 320px; /* Define a largura máxima */
+  max-height: 700px; /* Define a altura máxima, ajuste conforme necessário */
+  overflow-y: auto; /* Adiciona uma barra de rolagem vertical se o conteúdo exceder a altura máxima */
+  margin: 40px auto; /* Centraliza a div horizontalmente */
+  border: 1px solid #ccc; /* Adiciona uma borda opcional para visualização */
+  padding: 10px; /* Adiciona um pouco de espaço interno */
+  background-color: #f9f9f9; /* Fundo opcional */
 }
