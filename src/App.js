@@ -207,7 +207,7 @@ const App = () => {
     return embaralhado;
   });
 
-  const setaPuzzleInvertido = () => {
+  const setaPuzzleInvertido = () => {//Funcao para colocar qualquer ordem no estado inicial
     setBlocosIniciaisEstado([8,7,6,5,4,3,2,1,null]);
   }
 
