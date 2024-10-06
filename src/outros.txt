@@ -1,0 +1,174 @@
+const hillClimbing = (estadoInicial, estadoFinal, maxReinicios = 10) => {
+  let estadoAtual = estadoInicial;
+  let passos = [];
+  let tentativas = 0;
+  let melhorEstado = estadoAtual; // Inicializa a variável para armazenar o melhor estado encontrado
+  let melhorHeuristica = calcularHeuristica(estadoAtual, estadoFinal); // Inicializa a heurística do melhor estado
+
+  while (tentativas < maxReinicios) {
+    passos = [estadoAtual]; // Reinicia o caminho a partir do estado atual
+
+    while (true) {
+      const vizinhos = gerarVizinhos(estadoAtual);
+      const melhorVizinho = vizinhos.reduce((melhor, vizinho) => {
+        const custoAtual = calcularHeuristica(melhor, estadoFinal);
+        const custoVizinho = calcularHeuristica(vizinho, estadoFinal);
+        return custoVizinho < custoAtual ? vizinho : melhor;
+      }, estadoAtual);
+
+      if (calcularHeuristica(melhorVizinho, estadoFinal) >= calcularHeuristica(estadoAtual, estadoFinal)) {
+        break; // Se não houver melhoria, terminamos
+      }
+      
+      estadoAtual = melhorVizinho; // Move para o melhor vizinho
+      passos.push(estadoAtual); // Adiciona o novo estado ao caminho
+
+      // Atualiza o melhor estado se a heurística for menor
+      const heuristicaAtual = calcularHeuristica(estadoAtual, estadoFinal);
+      if (heuristicaAtual < melhorHeuristica) {
+        melhorEstado = estadoAtual; // Atualiza o melhor estado
+        melhorHeuristica = heuristicaAtual; // Atualiza a heurística do melhor estado
+      }
+    }
+
+    // Verifica se encontramos a solução
+    if (JSON.stringify(estadoAtual) === JSON.stringify(estadoFinal)) {
+      return passos; // Retorna o caminho se a solução for encontrada
+    }
+
+    // Se não encontramos, gera um novo estado inicial e aumenta a contagem de tentativas
+    estadoAtual = embaralharArray(blocosIniciais);
+    while (!ehSolucionavel(estadoAtual)) {
+      estadoAtual = embaralharArray(blocosIniciais);
+    }
+    tentativas++;
+  }
+
+  return [melhorEstado]; // Retorna o melhor estado encontrado após todas as tentativas
+};
+
+
+const gerarVizinhos = (estado) => {
+  const vizinhos = [];
+  const indiceVazio = estado.indexOf(null);
+
+  for (const { dx, dy } of matrizMovimentos) {
+    const novaPosicao = indiceVazio + dx * 3 + dy;
+
+    if (novaPosicao >= 0 && novaPosicao < 9) {
+      const podeMover =
+        (Math.abs(indiceVazio - novaPosicao) === 1 && Math.floor(indiceVazio / 3) === Math.floor(novaPosicao / 3)) || 
+        (Math.abs(indiceVazio - novaPosicao) === 3);
+
+      if (podeMover) {
+        const novoEstado = trocaBlocos(estado, indiceVazio, novaPosicao);
+        vizinhos.push(novoEstado);
+      }
+    }
+  }
+
+  return vizinhos;
+};
+
+
+
+
+
+const encontrarPassos = (estadoInicial, estadoFinal) => {
+
+  const bfs = (estadoInicial, estadoFinal) => {
+    // Cria uma fila que irá armazenar os estados a serem explorados.
+    // Cada elemento da fila é um array que contém o estado atual, o índice do espaço vazio e o caminho percorrido até este estado.
+    const fila = [[estadoInicial, estadoInicial.indexOf(null), []]];
+
+    // Conjunto para armazenar os estados já visitados, para evitar explorar o mesmo estado várias vezes.
+    const visitados = new Set();
+
+    // Enquanto houver estados a serem explorados na fila
+    while (fila.length > 0) {
+      // Remove o primeiro estado da fila para explorar
+      const [estadoAtual, indiceVazio, caminho] = fila.shift();
+
+      // Verifica se o estado atual é igual ao estado final
+      if (JSON.stringify(estadoAtual) === JSON.stringify(estadoFinal)) {
+        // Se for, retorna o caminho percorrido até este estado final
+        return caminho; // Retorna o caminho de soluções
+      }
+
+      // Para cada movimento possível (cima, baixo, esquerda, direita)
+      for (const { dx, dy } of matrizMovimentos) {
+        // Calcula a nova posição do espaço vazio após o movimento
+        const novaPosicao = indiceVazio + dx * 3 + dy; // calcula nova posição
+
+        // Verifica se a nova posição está dentro dos limites do puzzle
+        if (novaPosicao >= 0 && novaPosicao < 9) {
+          // Verifica se o movimento é válido (adjacente ao espaço vazio)
+          const podeMover =
+            (Math.abs(indiceVazio - novaPosicao) === 1 && Math.floor(indiceVazio / 3) === Math.floor(novaPosicao / 3)) || // Movimento horizontal
+            (Math.abs(indiceVazio - novaPosicao) === 3); // Movimento vertical
+
+          // Se o movimento é válido, executa a troca dos blocos
+          if (podeMover) {
+            // Cria um novo estado após a troca
+            const novoEstado = trocaBlocos(estadoAtual, indiceVazio, novaPosicao);
+
+            // Converte o novo estado em string para usá-lo como chave no conjunto
+            const chave = JSON.stringify(novoEstado);
+
+            // Se o novo estado ainda não foi visitado
+            if (!visitados.has(chave)) {
+              // Adiciona o novo estado ao conjunto de visitados
+              visitados.add(chave);
+              // Adiciona o novo estado, a nova posição do espaço vazio e o caminho atualizado à fila
+              fila.push([novoEstado, novaPosicao, [...caminho, novoEstado]]);
+            }
+          }
+        }
+      }
+    }
+    // Se a fila esvaziar sem encontrar o estado final, retorna um array vazio
+    return [];
+  };
+
+
+  return bfs(estadoInicial, estadoFinal);
+};
+
+
+
+
+
+// Em app
+
+const resolverPuzzle = () => {
+    const inicio = performance.now();
+    const novosPassos = encontrarPassos(blocosIniciaisEstado, blocosFinaisEstado);
+    const fim = performance.now();
+
+    const tempo = fim - inicio;
+    setTempoGasto(tempo);
+
+    setCaminho(novosPassos);
+    setPassos(novosPassos);
+    setPassoAtual(0);
+    setResolvendo(true);
+  };
+
+  const resolverPuzzleHillClimbing = () => {
+    const inicio = performance.now();
+    const novosPassos = hillClimbing(blocosIniciaisEstado, blocosFinaisEstado);
+    const fim = performance.now();
+
+    const tempo = fim - inicio;
+    setTempoGasto(tempo);
+
+    setCaminho(novosPassos);
+    setPassos(novosPassos);
+    setPassoAtual(0);
+    setResolvendo(true);
+  };
+
+
+
+  <button onClick={resolverPuzzleHillClimbing} disabled={estaResolvido()}>Resolver com Hill Climbing</button>
+  {/*<button onClick={resolverPuzzle} disabled={estaResolvido()}>Resolver com outro</button>*/}

@@ -70,149 +70,15 @@ const trocaBlocos = (blocos, indice1, indice2) => {
   return novosBlocos;
 };
 
-// Função para encontrar os passos
-const encontrarPassos = (estadoInicial, estadoFinal) => {
-
-  const bfs = (estadoInicial, estadoFinal) => {
-    // Cria uma fila que irá armazenar os estados a serem explorados.
-    // Cada elemento da fila é um array que contém o estado atual, o índice do espaço vazio e o caminho percorrido até este estado.
-    const fila = [[estadoInicial, estadoInicial.indexOf(null), []]];
-
-    // Conjunto para armazenar os estados já visitados, para evitar explorar o mesmo estado várias vezes.
-    const visitados = new Set();
-
-    // Enquanto houver estados a serem explorados na fila
-    while (fila.length > 0) {
-      // Remove o primeiro estado da fila para explorar
-      const [estadoAtual, indiceVazio, caminho] = fila.shift();
-
-      // Verifica se o estado atual é igual ao estado final
-      if (JSON.stringify(estadoAtual) === JSON.stringify(estadoFinal)) {
-        // Se for, retorna o caminho percorrido até este estado final
-        return caminho; // Retorna o caminho de soluções
-      }
-
-      // Para cada movimento possível (cima, baixo, esquerda, direita)
-      for (const { dx, dy } of matrizMovimentos) {
-        // Calcula a nova posição do espaço vazio após o movimento
-        const novaPosicao = indiceVazio + dx * 3 + dy; // calcula nova posição
-
-        // Verifica se a nova posição está dentro dos limites do puzzle
-        if (novaPosicao >= 0 && novaPosicao < 9) {
-          // Verifica se o movimento é válido (adjacente ao espaço vazio)
-          const podeMover =
-            (Math.abs(indiceVazio - novaPosicao) === 1 && Math.floor(indiceVazio / 3) === Math.floor(novaPosicao / 3)) || // Movimento horizontal
-            (Math.abs(indiceVazio - novaPosicao) === 3); // Movimento vertical
-
-          // Se o movimento é válido, executa a troca dos blocos
-          if (podeMover) {
-            // Cria um novo estado após a troca
-            const novoEstado = trocaBlocos(estadoAtual, indiceVazio, novaPosicao);
-
-            // Converte o novo estado em string para usá-lo como chave no conjunto
-            const chave = JSON.stringify(novoEstado);
-
-            // Se o novo estado ainda não foi visitado
-            if (!visitados.has(chave)) {
-              // Adiciona o novo estado ao conjunto de visitados
-              visitados.add(chave);
-              // Adiciona o novo estado, a nova posição do espaço vazio e o caminho atualizado à fila
-              fila.push([novoEstado, novaPosicao, [...caminho, novoEstado]]);
-            }
-          }
-        }
-      }
-    }
-    // Se a fila esvaziar sem encontrar o estado final, retorna um array vazio
-    return [];
-  };
-
-
-  return bfs(estadoInicial, estadoFinal);
-};
-
-
-//Hill climbing com reinicio
-const hillClimbing = (estadoInicial, estadoFinal, maxReinicios = 10) => {
-  let estadoAtual = estadoInicial;
-  let passos = [];
-  let tentativas = 0;
-  let melhorEstado = estadoAtual; // Inicializa a variável para armazenar o melhor estado encontrado
-  let melhorHeuristica = calcularHeuristica(estadoAtual, estadoFinal); // Inicializa a heurística do melhor estado
-
-  while (tentativas < maxReinicios) {
-    passos = [estadoAtual]; // Reinicia o caminho a partir do estado atual
-
-    while (true) {
-      const vizinhos = gerarVizinhos(estadoAtual);
-      const melhorVizinho = vizinhos.reduce((melhor, vizinho) => {
-        const custoAtual = calcularHeuristica(melhor, estadoFinal);
-        const custoVizinho = calcularHeuristica(vizinho, estadoFinal);
-        return custoVizinho < custoAtual ? vizinho : melhor;
-      }, estadoAtual);
-
-      if (calcularHeuristica(melhorVizinho, estadoFinal) >= calcularHeuristica(estadoAtual, estadoFinal)) {
-        break; // Se não houver melhoria, terminamos
-      }
-      
-      estadoAtual = melhorVizinho; // Move para o melhor vizinho
-      passos.push(estadoAtual); // Adiciona o novo estado ao caminho
-
-      // Atualiza o melhor estado se a heurística for menor
-      const heuristicaAtual = calcularHeuristica(estadoAtual, estadoFinal);
-      if (heuristicaAtual < melhorHeuristica) {
-        melhorEstado = estadoAtual; // Atualiza o melhor estado
-        melhorHeuristica = heuristicaAtual; // Atualiza a heurística do melhor estado
-      }
-    }
-
-    // Verifica se encontramos a solução
-    if (JSON.stringify(estadoAtual) === JSON.stringify(estadoFinal)) {
-      return passos; // Retorna o caminho se a solução for encontrada
-    }
-
-    // Se não encontramos, gera um novo estado inicial e aumenta a contagem de tentativas
-    estadoAtual = embaralharArray(blocosIniciais);
-    while (!ehSolucionavel(estadoAtual)) {
-      estadoAtual = embaralharArray(blocosIniciais);
-    }
-    tentativas++;
-  }
-
-  return [melhorEstado]; // Retorna o melhor estado encontrado após todas as tentativas
-};
-
-
-const gerarVizinhos = (estado) => {
-  const vizinhos = [];
-  const indiceVazio = estado.indexOf(null);
-
-  for (const { dx, dy } of matrizMovimentos) {
-    const novaPosicao = indiceVazio + dx * 3 + dy;
-
-    if (novaPosicao >= 0 && novaPosicao < 9) {
-      const podeMover =
-        (Math.abs(indiceVazio - novaPosicao) === 1 && Math.floor(indiceVazio / 3) === Math.floor(novaPosicao / 3)) || 
-        (Math.abs(indiceVazio - novaPosicao) === 3);
-
-      if (podeMover) {
-        const novoEstado = trocaBlocos(estado, indiceVazio, novaPosicao);
-        vizinhos.push(novoEstado);
-      }
-    }
-  }
-
-  return vizinhos;
-};
-
 
 const aStar = (estadoInicial, estadoFinal) => {
   // Inicializa a fila com o estado inicial, índice do espaço vazio, caminho percorrido até aqui e custo total (g)
   const fila = [[estadoInicial, estadoInicial.indexOf(null), [], 0]];
   const visitados = new Set(); // Conjunto para rastrear estados já visitados
-
+  let qtdeNosVisitados = 0;
   // Enquanto houver estados a explorar na fila
   while (fila.length > 0) {
+    qtdeNosVisitados++;
     // Ordena a fila pela função de custo total f(n) = g(n) + h(n)
     fila.sort((a, b) => (a[3] + calcularHeuristica(a[0], estadoFinal)) - (b[3] + calcularHeuristica(b[0], estadoFinal)));
 
@@ -221,7 +87,7 @@ const aStar = (estadoInicial, estadoFinal) => {
 
     // Verifica se o estado atual é o estado final
     if (JSON.stringify(estadoAtual) === JSON.stringify(estadoFinal)) {
-      return caminho; // Retorna o caminho de solução encontrado
+      return { caminho, qtdeNosVisitados }; // Retorna o caminho de solução encontrado
     }
 
     // Para cada movimento possível (cima, baixo, esquerda, direita)
@@ -253,7 +119,43 @@ const aStar = (estadoInicial, estadoFinal) => {
     }
   }
 
-  return []; // Se não encontrar solução, retorna um array vazio
+  return { caminho: [], qtdeNosVisitados }; // Se não encontrar solução, retorna um array vazio
+};
+
+const bestFirstSearch = (estadoInicial, estadoFinal) => {
+  const fila = [[estadoInicial, estadoInicial.indexOf(null), []]];
+  const visitados = new Set();
+  let qtdeNosVisitados = 0;
+
+  while (fila.length > 0) {
+    fila.sort((a, b) => calcularHeuristica(a[0], estadoFinal) - calcularHeuristica(b[0], estadoFinal));
+    const [estadoAtual, indiceVazio, caminho] = fila.shift();
+    qtdeNosVisitados++;
+    if (JSON.stringify(estadoAtual) === JSON.stringify(estadoFinal)) {
+      return { caminho, qtdeNosVisitados };
+    }
+
+    for (const { dx, dy } of matrizMovimentos) {
+      const novaPosicao = indiceVazio + dx * 3 + dy;
+
+      if (novaPosicao >= 0 && novaPosicao < 9) {
+        const podeMover =
+          (Math.abs(indiceVazio - novaPosicao) === 1 && Math.floor(indiceVazio / 3) === Math.floor(novaPosicao / 3)) ||
+          (Math.abs(indiceVazio - novaPosicao) === 3);
+
+        if (podeMover) {
+          const novoEstado = trocaBlocos(estadoAtual, indiceVazio, novaPosicao);
+          const chave = JSON.stringify(novoEstado);
+
+          if (!visitados.has(chave)) {
+            visitados.add(chave);
+            fila.push([novoEstado, novaPosicao, [...caminho, novoEstado]]);
+          }
+        }
+      }
+    }
+  }
+  return { caminho: [], qtdeNosVisitados };
 };
 
 
@@ -294,6 +196,8 @@ const Caminho = ({ estados }) => {
 };
 
 
+
+
 const App = () => {
   const [blocosIniciaisEstado, setBlocosIniciaisEstado] = useState(() => {
     let embaralhado = embaralharArray(blocosIniciais);
@@ -303,6 +207,10 @@ const App = () => {
     return embaralhado;
   });
 
+  const setaPuzzleInvertido = () => {
+    setBlocosIniciaisEstado([8,7,6,5,4,3,2,1,null]);
+  }
+
   const [blocosFinaisEstado, setBlocosFinaisEstado] = useState(estadoFinalPadrao);
   const [passos, setPassos] = useState([]);
   const [passoAtual, setPassoAtual] = useState(0);
@@ -310,49 +218,37 @@ const App = () => {
   const [distanciaManhattan, setDistanciaManhattan] = useState(-1); // Estado para armazenar a distância
   const [caminho, setCaminho] = useState([]);
   const [tempoGasto, setTempoGasto] = useState(0);
+  const [nosVisitados, setNosVisitados] = useState(0);
 
   const estaResolvido = () => {
     return JSON.stringify(blocosIniciaisEstado) === JSON.stringify(blocosFinaisEstado);
   };
 
-  const resolverPuzzle = () => {
-    const inicio = performance.now();
-    const novosPassos = encontrarPassos(blocosIniciaisEstado, blocosFinaisEstado);
-    const fim = performance.now();
-
-    const tempo = fim - inicio;
-    setTempoGasto(tempo);
-
-    setCaminho(novosPassos);
-    setPassos(novosPassos);
-    setPassoAtual(0);
-    setResolvendo(true);
-  };
-
   const resolverPuzzleAStar = () => {
     const inicio = performance.now();
-    const novosPassos = aStar(blocosIniciaisEstado, blocosFinaisEstado);
+    const { caminho, qtdeNosVisitados } = aStar(blocosIniciaisEstado, blocosFinaisEstado);
     const fim = performance.now();
     
     const tempo = fim - inicio;
     setTempoGasto(tempo);
 
-    setCaminho(novosPassos);
-    setPassos(novosPassos);
+    setCaminho(caminho);
+    setPassos(caminho);
+    setNosVisitados(qtdeNosVisitados);
     setPassoAtual(0);
     setResolvendo(true);
   };
 
-  const resolverPuzzleHillClimbing = () => {
+  const resolverPuzzleBestFirst = () => {
     const inicio = performance.now();
-    const novosPassos = hillClimbing(blocosIniciaisEstado, blocosFinaisEstado);
+    const { caminho, qtdeNosVisitados } = bestFirstSearch(blocosIniciaisEstado, blocosFinaisEstado);
     const fim = performance.now();
 
     const tempo = fim - inicio;
     setTempoGasto(tempo);
-
-    setCaminho(novosPassos);
-    setPassos(novosPassos);
+    setCaminho(caminho);
+    setPassos(caminho);
+    setNosVisitados(qtdeNosVisitados);
     setPassoAtual(0);
     setResolvendo(true);
   };
@@ -403,13 +299,17 @@ const App = () => {
         </div>
       </div>
 
-      {/*<button onClick={resolverPuzzle} disabled={estaResolvido()}>Resolver com outro</button>*/}
-      <button onClick={resolverPuzzleHillClimbing} disabled={estaResolvido()}>Resolver com Hill Climbing</button>
-      <button onClick={resolverPuzzleAStar} disabled={estaResolvido()}>Resolver com A*</button>
-      <button onClick={calcularSomaDistanciasManhattan}>Calcular Distância Manhattan</button>
       
+      <div className='div-botoes'>
+        <button onClick={resolverPuzzleAStar} disabled={estaResolvido()}>Resolver com A*</button>
+        <button onClick={resolverPuzzleBestFirst} disabled={estaResolvido()}>Resolver Best-First</button>
+      </div>
 
-
+      <div className='div-botoes'>
+        <button onClick={setaPuzzleInvertido}>Puzzle Invertido</button>
+        <button onClick={calcularSomaDistanciasManhattan}>Distância Manhattan</button>
+      </div>
+      
       <button onClick={avancarPasso} disabled={!resolvendo || passoAtual >= passos.length}>Próximo Passo</button>
 
       {distanciaManhattan >= 0 && <div className="mensagem">Distância de Manhattan: {distanciaManhattan}</div>}
@@ -417,6 +317,7 @@ const App = () => {
       {tempoGasto >= 0 && (
         <div className="mensagem">
           Tempo gasto na resolução: {tempoGasto.toFixed(2)} ms
+          {nosVisitados > 0 && <div className="mensagem">Nós visitados: {nosVisitados}</div>}
         </div>
       )}
 
